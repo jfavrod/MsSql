@@ -1,5 +1,6 @@
 using System;
 using System.Data.SqlClient;
+using System.Collections;
 
 　
 namespace SqlExpress
@@ -52,6 +53,48 @@ namespace SqlExpress
             result = (new SqlCommand(sql, conn)).ExecuteNonQuery();
 
             conn.Close();
+            return result;
+        }
+
+　
+        /**
+         * select
+         * 
+         * Executes SQL select statements on the database.
+         * 
+         * @param string sql The SQL select statement to be executed.
+         * @param int colCount The number of columns in the resulting tuples.
+         * @return ArrayList A collection of string ArrayLists representing
+         * the result set.
+         */
+
+        public ArrayList select(string sql, int colCount)
+        {
+            SqlConnection conn = new SqlConnection(this.connectionString);
+            SqlDataReader reader = null;
+            ArrayList result = new ArrayList();
+            ArrayList tuple = new ArrayList();
+
+            conn.Open();
+            reader = (new SqlCommand(sql, conn)).ExecuteReader();
+
+            while (reader.Read())
+            {
+                for (int j = 0; j < colCount; j++) {
+                    if (j+1 == colCount) {
+                        tuple.Add(reader.GetString(j));
+                    }
+                    else {
+                        tuple.Add(reader.GetString(j));
+                    }
+                }
+
+                result.Add(tuple.Clone());
+                tuple.Clear();
+            }
+
+            conn.Close();
+
             return result;
         }
     }

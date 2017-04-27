@@ -18,16 +18,37 @@ namespace SqlExpress
 
 　
         /**
-         * getConnString
+         * tableExists
          * 
-         * Retrieves the connectionString.
+         * Tells wheather or not the given table exists.
          * 
-         * @return string This object's connection string.
+         * @param string table A given table name.
+         * @return Boolean True if table exists, false otherwise.
          */
 
-        public string getConnString()
+        public Boolean tableExists(string table)
         {
-            return this.connectionString;
+            SqlConnection conn = new SqlConnection(this.connectionString);
+            Boolean result = false;
+            ArrayList tmp = null;
+
+            string sql = "select count(*) from information_schema.tables ";
+            sql += "where table_name = '" + table + "'";
+
+            conn.Open();
+            tmp = select(sql, 1);
+
+            // Make sure the query has only one resulting row.
+            if (tmp.Count == 1) {
+                foreach (ArrayList item in tmp) {
+                    if (item[0].ToString() == "1") {
+                        result = true;
+                    }
+                }
+            }
+
+            conn.Close();
+            return result;
         }
 
 　
@@ -81,11 +102,12 @@ namespace SqlExpress
             while (reader.Read())
             {
                 for (int j = 0; j < colCount; j++) {
-                    if (j+1 == colCount) {
+                    try {
                         tuple.Add(reader.GetString(j));
                     }
-                    else {
-                        tuple.Add(reader.GetString(j));
+                    // When the reader returns an int.
+                    catch (InvalidCastException) {
+                        tuple.Add((reader.GetInt32(j)).ToString());
                     }
                 }
 
@@ -94,8 +116,21 @@ namespace SqlExpress
             }
 
             conn.Close();
-
             return result;
+        }
+
+　
+        /**
+         * getConnString
+         * 
+         * Retrieves the connectionString.
+         * 
+         * @return string This object's connection string.
+         */
+
+        public string getConnString()
+        {
+            return this.connectionString;
         }
     }
 }
